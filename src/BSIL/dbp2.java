@@ -36,7 +36,7 @@ public class dbp2
 
         System.out.println();
         System.out.println("If the connection has a password, the program will also require this");
-        System.out.print("Please the username here: ");
+        System.out.print("Please the password here: ");
         String password = s.nextLine();
 
         Connection c = connect(url, username, password);
@@ -97,15 +97,16 @@ public class dbp2
         ResultSet rs = stmt.executeQuery("SELECT e1.dept_no FROM dept_emp e1, dept_emp e2 " +
                 "WHERE e1.emp_no = " + e1Num +
                 " AND e2.emp_no = " + e2Num +
-                " AND e1.dept_no = e2.dept_no");
+                " AND e1.dept_no = e2.dept_no"
+                + " LIMIT 100;");
         if(!rs.isBeforeFirst()){
-            System.out.println();
-            System.out.println(String.format("There is no relationship between employee %s and employee %s", e1Num, e2Num));
+        	System.out.println();
+            System.out.println(String.format("There is no first degree relationship between employee %s and employee %s", e1Num, e2Num));
         }else{
-            System.out.println();
+        	System.out.println();
+        	System.out.println(String.format("The following department link employee %s and employee %s via first degrees of separation", e1Num, e2Num));
             while(rs.next()){
-                System.out.println("There is one degree of separation between employee" + Integer.toString(e1Num)
-                        + " and employee" + Integer.toString(e2Num) +" via department "+ rs.getString(1));
+                System.out.println(e1Num + " --> " + rs.getString(1) + " <-- " + e2Num);
             }
         }
     }
@@ -120,7 +121,8 @@ public class dbp2
                 "INNER JOIN (SELECT e1.emp_no, e1.dept_no " +
                 "FROM employees.dept_emp e1 " +
                 "WHERE e1.dept_no IN (SELECT dept_no FROM employees.dept_emp WHERE emp_no = "+ e2Num + ")) a2 " +
-                "ON a1.emp_no = a2.emp_no");
+                "ON a1.emp_no = a2.emp_no"
+                + " LIMIT 100;");
         if(!rs.isBeforeFirst()){
             System.out.println();
             System.out.println(String.format("There is no second degree relationship between employee %s and employee %s", e1Num, e2Num));
@@ -129,7 +131,7 @@ public class dbp2
             System.out.println(String.format("The following employees link employee %s and employee %s via two degrees of separation", e1Num, e2Num));
             System.out.println();
             while(rs.next()){
-                System.out.println("Employee number : " + rs.getString(1) + "| Department number: "+ rs.getString(2));
+            	System.out.println(e1Num + " --> " + rs.getString(2) + " <-- " + rs.getString(1) + " --> " + rs.getString(4) + " <-- " + e2Num);
             }
         }
     }
