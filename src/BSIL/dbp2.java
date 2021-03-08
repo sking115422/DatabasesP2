@@ -94,11 +94,16 @@ public class dbp2
 
     public static void oneDegree(int e1Num, int e2Num, Connection con) throws SQLException {
         Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("SELECT e1.dept_no FROM dept_emp e1, dept_emp e2 " +
-                "WHERE e1.emp_no = " + e1Num +
-                " AND e2.emp_no = " + e2Num +
-                " AND e1.dept_no = e2.dept_no"
-                + " LIMIT 100;");
+        ResultSet rs = stmt.executeQuery("SELECT e.e1_d " + 
+        		"FROM (SELECT e1.emp_no e1_e, e1.dept_no e1_d, e1.from_date e1_f, e1.to_date e1_t, " + 
+        		"	e2.emp_no e2_e, e2.dept_no e2_d, e2.from_date e2_f, e2.to_date e2_t " + 
+        		"FROM employees.dept_emp e1, employees.dept_emp e2 " + 
+        		"WHERE e1.emp_no = " + e1Num + " " + 
+        		"AND e2.emp_no = "+ e2Num + " " + 
+        		"AND e1.dept_no = e2.dept_no " + 
+        		") AS e " + 
+        		"WHERE !((e.e1_t < e.e2_f) OR (e.e1_f > e.e2_t))" +
+                " LIMIT 100;");
         if(!rs.isBeforeFirst()){
         	System.out.println();
             System.out.println(String.format("There is no first degree relationship between employee %s and employee %s", e1Num, e2Num));
@@ -114,15 +119,31 @@ public class dbp2
 
     public static void twoDegrees(int e1Num, int e2Num, Connection con) throws SQLException {
         Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("SELECT * " +
-                "FROM (SELECT e1.emp_no, e1.dept_no " +
-                "FROM employees.dept_emp e1 " +
-                "WHERE e1.dept_no IN (SELECT dept_no FROM employees.dept_emp WHERE emp_no = "+ e1Num + ")) a1 " +
-                "INNER JOIN (SELECT e1.emp_no, e1.dept_no " +
-                "FROM employees.dept_emp e1 " +
-                "WHERE e1.dept_no IN (SELECT dept_no FROM employees.dept_emp WHERE emp_no = "+ e2Num + ")) a2 " +
-                "ON a1.emp_no = a2.emp_no"
-                + " LIMIT 100;");
+        ResultSet rs = stmt.executeQuery("SELECT * " + 
+        		"FROM (SELECT e.e2_e AS emp, e.e2_d AS dep " + 
+        		"	FROM (SELECT e1.emp_no e1_e, e1.dept_no e1_d, e1.from_date e1_f, e1.to_date e1_t, " + 
+        		"		e2.emp_no e2_e, e2.dept_no e2_d, e2.from_date e2_f, e2.to_date e2_t " + 
+        		"		FROM employees.dept_emp e1, employees.dept_emp e2 " + 
+        		"		WHERE e1.emp_no = " + e1Num + " " +
+        		"		AND e1.dept_no = e2.dept_no " + 
+        		"		) AS e " + 
+        		"	WHERE !((e.e1_t < e.e2_f) OR (e.e1_f > e.e2_t)) " + 
+        		") AS a1 " + 
+        		"INNER JOIN " + 
+        		"(SELECT e.e2_e AS emp, e.e2_d AS dep " + 
+        		"FROM (SELECT e1.emp_no e1_e, e1.dept_no e1_d, e1.from_date e1_f, e1.to_date e1_t, " + 
+        		"	e2.emp_no e2_e, e2.dept_no e2_d, e2.from_date e2_f, e2.to_date e2_t " + 
+        		"	FROM employees.dept_emp e1, employees.dept_emp e2 " + 
+        		"	WHERE e1.emp_no = " + e2Num + " " + 
+        		"	AND e1.dept_no = e2.dept_no " + 
+        		"	) AS e " + 
+        		"WHERE !((e.e1_t < e.e2_f) OR (e.e1_f > e.e2_t)) " + 
+        		") AS a2 " + 
+        		"ON a1.emp = a2.emp " + 
+        		"WHERE a1.dep != a2.dep " + 
+        		"AND a1.emp != " + e1Num + " " +
+        		"AND a1.emp != " + e2Num + " " +
+        		"LIMIT 100;");
         if(!rs.isBeforeFirst()){
             System.out.println();
             System.out.println(String.format("There is no second degree relationship between employee %s and employee %s", e1Num, e2Num));
