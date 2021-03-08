@@ -94,6 +94,8 @@ public class dbp2
 
     public static void oneDegree(int e1Num, int e2Num, Connection con) throws SQLException {
         Statement stmt = con.createStatement();
+        // using this query, emp_dep table self join with itself and where first table represents emp1 and second represenys emp2 and then
+        // shows all the rows with common department, then it only shows rows for employess that worked together. 
         ResultSet rs = stmt.executeQuery("SELECT e.e1_d " + 
         		"FROM (SELECT e1.emp_no e1_e, e1.dept_no e1_d, e1.from_date e1_f, e1.to_date e1_t, " + 
         		"	e2.emp_no e2_e, e2.dept_no e2_d, e2.from_date e2_f, e2.to_date e2_t " + 
@@ -119,6 +121,8 @@ public class dbp2
 
     public static void twoDegrees(int e1Num, int e2Num, Connection con) throws SQLException {
         Statement stmt = con.createStatement();
+        // this query use same logic as first degree two time which makes two table and then it use inner join to 
+        // get the intersection.
         ResultSet rs = stmt.executeQuery("SELECT * " + 
         		"FROM (SELECT e.e2_e AS emp, e.e2_d AS dep " + 
         		"	FROM (SELECT e1.emp_no e1_e, e1.dept_no e1_d, e1.from_date e1_f, e1.to_date e1_t, " + 
